@@ -14,3 +14,4 @@ This project aims to reduce the chore aspect, by automating a lot of the mission
 
 - Both Monthly
 - Game language: Korean
+- Have enough students to spend all your schedule tickets with 2 or more students

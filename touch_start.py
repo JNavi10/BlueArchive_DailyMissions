@@ -67,11 +67,12 @@ def click_next_button():
 
 def run_schedule():
     schale_office_path = os.path.join(TEMPLATE_DIR, "schedule_schale_office_location.png")
-    schale_office_visited = False
+    schale_ticket_available = os.path.join(TEMPLATE_DIR, "schedule_ticket_0.png")
+ 
  
     def _actually_run_schedule():
         accepted_schedule, _ = _schedule_in_location()
-        for x, y in accepted_schedule:
+        for x, y in reversed(accepted_schedule):  # Reverse so we get purple books first
             # click schedule
             pyautogui.moveTo(x + 10, y + 10)
             pyautogui.click()
@@ -90,6 +91,7 @@ def run_schedule():
                     pyautogui.moveTo(x + 10, y + 10)
                     pyautogui.click()
                     print("✅ Confirmed schedule.")
+                    time.sleep(1)
                     break
                 
                 pyautogui.click()  # click in place to advance
@@ -102,7 +104,7 @@ def run_schedule():
 
     # Optimal Runs
     _actually_run_schedule()
-
+    """
     # Set end for optimal runs
     start_time = time.time()
 
@@ -120,11 +122,66 @@ def run_schedule():
             break
         else:
             print("🔁 Schale office not found, retrying...")
-            time.sleep(1)
+            time.sleep(1)"""
+
+    click_next_button()
+    time.sleep(2)
+    screenshot()
 
     # optimal runs for all locations
     while not match_template("screen.png", schale_office_path):
-        pass
+        if match_template("screen.png", schale_ticket_available):
+            print("Ticket empty")
+            return
+
+        # Optimal Runs
+        _actually_run_schedule()
+
+        click_next_button()
+        time.sleep(2)
+        screenshot()
+
+    print("Optimal run finished.")
+
+    while not match_template("screen.png", schale_ticket_available):
+        _, all_slots = _schedule_in_location()
+
+        for x, y, num_hearts in all_slots:
+            if num_hearts >= 2:
+                # click schedule
+                pyautogui.moveTo(x + 10, y + 10)
+                pyautogui.click()
+                pyautogui.sleep(1)
+
+                # run schedule
+                click_template("schedule_start_schedule.png")
+                time.sleep(1)
+
+                while True:
+                    screenshot()
+                    confirm_pos = match_template("screen.png", os.path.join(TEMPLATE_DIR, "schedule_confirm.png"), threshold=0.85)
+                    
+                    if confirm_pos:
+                        x, y = confirm_pos
+                        pyautogui.moveTo(x + 10, y + 10)
+                        pyautogui.click()
+                        print("✅ Confirmed schedule.")
+                        time.sleep(1)
+                        break
+                    
+                    pyautogui.click()  # click in place to advance
+                    time.sleep(1)
+        
+        # To exit all schedule
+        click_template("schedule_all_schedule.png")
+        time.sleep(1)
+
+        click_next_button()
+        time.sleep(2)
+        screenshot()
+
+    
+
 
 
 def _schedule_in_location():
@@ -209,43 +266,47 @@ def _schedule_in_location():
 
 
 def do_startup():
-    click_template("touch_to_start.png", offset=(100, 10))       # avoid menu
+    click_template("touch_to_start.png", offset=(100, 10))  # Check template not exist
     time.sleep(15)
-    click_template("daily_check_in.png")
+    click_template("daily_check_in.png")  # Check template not exist
     time.sleep(3)
-    click_template("exit_announcements.png")
+    click_template("exit_announcements.png")  # Check template not exist
     time.sleep(2)
-    click_template("monthly_check_in.png")
-    time.sleep(2)
+    click_template("monthly_check_in.png")  # Check template not exist
+    time.sleep(4)
 
 def do_cafe():
     # Need to implement student nadenade feature
-    click_template("cafe_icon.png")
+    click_template("cafe_icon.png")  # Check template not exist
     time.sleep(5)
     click_template("cafe_visited_students.png")
-    time.sleep(3)
+    time.sleep(2)
+    click_template("cafe_visited_students_exit.png")  # Check template not exist
+    time.sleep(1)
     click_template("cafe_collect.png")
     time.sleep(2)
     click_template("cafe_collect_confirm.png")
     time.sleep(2)
     click_template("cafe_collect_touch.png")
     time.sleep(2)
-    click_template("cafe_collect_x.png")
-    time.sleep(2)
+    click_template("cafe_collect_x.png")  # Check template not exist
+    time.sleep(1)
     click_template("cafe_back.png")
-    time.sleep(7)
+    time.sleep(8)
 
 def do_schedule():
-    click_template("schedule_icon.png")
+    click_template("schedule_icon.png")  # Check template not exist
     time.sleep(5)
-    click_template("schedule_schale_office.png")
+    click_template("schedule_schale_office.png")  # Check template not exist
     time.sleep(2)
     run_schedule()
+    click_template("cafe_back.png")  # Return to ARONA page
+    time.sleep(2)
+    click_template("cafe_back.png")  # Check template not exist
+    time.sleep(5)
 
 if __name__ == "__main__":
     #do_startup()
     #do_cafe()
-    #do_schedule()
-    run_schedule()
+    do_schedule()
     
-    pass
