@@ -130,7 +130,7 @@ def run_schedule():
 
     # optimal runs for all locations
     while not match_template("screen.png", schale_office_path):
-        if match_template("screen.png", schale_ticket_available):
+        if match_template("screen.png", schale_ticket_available, 0.95):
             print("Ticket empty")
             return
 
@@ -143,7 +143,7 @@ def run_schedule():
 
     print("Optimal run finished.")
 
-    while not match_template("screen.png", schale_ticket_available):
+    while not match_template("screen.png", schale_ticket_available, 0.95):
         _, all_slots = _schedule_in_location()
 
         for x, y, num_hearts in all_slots:
@@ -274,7 +274,10 @@ def do_startup():
     time.sleep(2)
     click_template("monthly_check_in.png")  # Check template not exist
     time.sleep(4)
+    click_template("cafe_icon.png")  # Temporary until above is fixed
+    time.sleep(2)
 
+    
 def do_cafe():
     # Need to implement student nadenade feature
     click_template("cafe_icon.png")  # Check template not exist
@@ -305,8 +308,72 @@ def do_schedule():
     click_template("cafe_back.png")  # Check template not exist
     time.sleep(5)
 
+def do_social():
+    click_template("social_icon.png")  # Check template not exist
+    time.sleep(2)
+    click_template("social_circle.png")
+    time.sleep(4)
+    click_template("social_confirm.png")
+    time.sleep(2)
+    click_template("cafe_back.png")
+    time.sleep(5)
+
+def do_create():
+    click_template("create_icon.png")  # Check template not exist
+    time.sleep(5)
+    click_template("create_receive.png")
+    time.sleep(2)
+    click_template("create_touch.png")
+    time.sleep(2)
+    click_template("create_quick.png")
+    time.sleep(2)
+    click_template("create_start.png")
+    time.sleep(2)
+    click_template("social_confirm.png")
+    time.sleep(2)
+    click_template("cafe_back.png")
+    time.sleep(5)
+
+def do_mission_first_half():
+    click_template("mission_icon.png")  # Check template not exist
+    time.sleep(5)
+    click_template("mission_receive_all.png")
+    time.sleep(2)
+    screenshot()
+    if match_template("screen.png", "notification.png", 0.95):
+        click_template("social_confirm.png")
+        time.sleep(2)
+    click_template("mission_touch.png")
+    time.sleep(2)
+    click_template("cafe_back.png")
+    time.sleep(5)
+
+def do_market():
+    click_template("market_icon.png")  # Check template not exist
+    time.sleep(5)
+    click_template("market_pvp.png")
+    time.sleep(2)
+    click_template("market_30ap.png")
+    time.sleep(2)
+    click_template("market_60ap.png")
+    time.sleep(2)
+    click_template("market_select_buy.png")
+    time.sleep(2)
+    click_template("confirm_yellow.png")
+    time.sleep(2)
+    click_template("market_touch.png")
+    time.sleep(2)
+    if match_template("screen.png", "notification.png", 0.95):
+        click_template("social_confirm.png")
+        time.sleep(2)
+    click_template("cafe_back.png")
+    time.sleep(5)
+
 if __name__ == "__main__":
-    #do_startup()
-    #do_cafe()
+    do_startup()
+    do_cafe()
     do_schedule()
-    
+    do_social()
+    do_create()
+    do_mission_first_half()
+    do_market()
