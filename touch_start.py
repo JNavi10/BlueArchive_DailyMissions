@@ -4,13 +4,18 @@ import pyautogui
 import time
 import os
 import pygetwindow as gw
+from datetime import datetime
 
 TEMPLATE_DIR = 'templates'
+DAY_MOD3 = datetime.now().day % 3
+
 
 def screenshot(save_path="screen.png"):
     pyautogui.screenshot(save_path)
 
-def match_template(screen_path, template_path, threshold=0.85):
+def match_template(screen_path, template_name, threshold=0.85):
+    screenshot()
+    template_path = os.path.join(TEMPLATE_DIR, template_name)
     screen = cv2.imread(screen_path, cv2.IMREAD_GRAYSCALE)
     template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
 
@@ -24,12 +29,10 @@ def match_template(screen_path, template_path, threshold=0.85):
     return None
 
 def click_template(template_name, timeout=15, retry_interval=0.3, offset=(10, 10)):
-    path = os.path.join(TEMPLATE_DIR, template_name)
     start_time = time.time()
 
     while time.time() - start_time < timeout:
-        screenshot()
-        pos = match_template("screen.png", path)
+        pos = match_template("screen.png", template_name)
         if pos:
             x, y = pos
             pyautogui.moveTo(x + offset[0], y + offset[1])
@@ -66,8 +69,8 @@ def click_next_button():
     time.sleep(1)
 
 def run_schedule():
-    schale_office_path = os.path.join(TEMPLATE_DIR, "schedule_schale_office_location.png")
-    schale_ticket_available = os.path.join(TEMPLATE_DIR, "schedule_ticket_0.png")
+    schale_office_path = "schedule_schale_office_location.png"
+    schale_ticket_available = "schedule_ticket_0.png"
  
  
     def _actually_run_schedule():
@@ -83,8 +86,7 @@ def run_schedule():
             time.sleep(1)
 
             while True:
-                screenshot()
-                confirm_pos = match_template("screen.png", os.path.join(TEMPLATE_DIR, "schedule_confirm.png"), threshold=0.85)
+                confirm_pos = match_template("screen.png", "schedule_confirm.png", threshold=0.85)
                 
                 if confirm_pos:
                     x, y = confirm_pos
@@ -104,25 +106,6 @@ def run_schedule():
 
     # Optimal Runs
     _actually_run_schedule()
-    """
-    # Set end for optimal runs
-    start_time = time.time()
-
-    # Schale office initial visit
-    while True:
-        if time.time() - start_time > 15:
-            print("⏱️ Timeout: schale office not found within 15 seconds.")
-            break
-
-        screenshot()
-        pos = match_template("screen.png", schale_office_path)
-        if pos:
-            schale_office_visited = True
-            print("✅ Schale office found.")
-            break
-        else:
-            print("🔁 Schale office not found, retrying...")
-            time.sleep(1)"""
 
     click_next_button()
     time.sleep(2)
@@ -158,8 +141,7 @@ def run_schedule():
                 time.sleep(1)
 
                 while True:
-                    screenshot()
-                    confirm_pos = match_template("screen.png", os.path.join(TEMPLATE_DIR, "schedule_confirm.png"), threshold=0.85)
+                    confirm_pos = match_template("screen.png", "schedule_confirm.png", threshold=0.85)
                     
                     if confirm_pos:
                         x, y = confirm_pos
@@ -179,10 +161,6 @@ def run_schedule():
         click_next_button()
         time.sleep(2)
         screenshot()
-
-    
-
-
 
 def _schedule_in_location():
     # File paths
@@ -277,6 +255,9 @@ def do_startup():
     click_template("cafe_icon.png")  # Temporary until above is fixed
     time.sleep(2)
 
+def do_ap_overflow():
+    if match_template("screen.png", "notification.png", 0.95):
+        click_template("social_confirm.png")
     
 def do_cafe():
     # Need to implement student nadenade feature
@@ -285,15 +266,17 @@ def do_cafe():
     click_template("cafe_visited_students.png")
     time.sleep(2)
     click_template("cafe_visited_students_exit.png")  # Check template not exist
-    time.sleep(1)
+    time.sleep(2)
     click_template("cafe_collect.png")
     time.sleep(2)
     click_template("cafe_collect_confirm.png")
     time.sleep(2)
     click_template("cafe_collect_touch.png")
     time.sleep(2)
+    do_ap_overflow()
+    time.sleep(2)
     click_template("cafe_collect_x.png")  # Check template not exist
-    time.sleep(1)
+    time.sleep(2)
     click_template("cafe_back.png")
     time.sleep(8)
 
@@ -339,10 +322,8 @@ def do_mission_first_half():
     time.sleep(5)
     click_template("mission_receive_all.png")
     time.sleep(2)
-    screenshot()
-    if match_template("screen.png", "notification.png", 0.95):
-        click_template("social_confirm.png")
-        time.sleep(2)
+    do_ap_overflow()
+    time.sleep(2)
     click_template("mission_touch.png")
     time.sleep(2)
     click_template("cafe_back.png")
@@ -360,14 +341,56 @@ def do_market():
     click_template("market_select_buy.png")
     time.sleep(2)
     click_template("confirm_yellow.png")
+    time.sleep(3)
+    click_template("market_touch.png")  # Check template not exist
     time.sleep(2)
-    click_template("market_touch.png")
+    do_ap_overflow()
     time.sleep(2)
-    if match_template("screen.png", "notification.png", 0.95):
-        click_template("social_confirm.png")
-        time.sleep(2)
     click_template("cafe_back.png")
     time.sleep(5)
+
+def do_work():
+    click_template("work_icon")
+    time.sleep(5)
+    _do_wanted()
+
+def _do_wanted():
+    click_template("wanted_icon")
+    time.sleep(2)
+    match DAY_MOD3:
+        case 0:
+            click_template("wanted_highway.png")
+        case 1:
+            click_template("wanted_desert_railroad.png")
+        case 2:
+            click_template("wanted_classroom.png")
+    time.sleep(2)
+
+    # File paths
+    LABEL_PATH = "templates/wanted_enter.png"
+
+    screenshot()
+
+    # Load images
+    screen = cv2.imread("screen.png")
+    label = cv2.imread(LABEL_PATH)
+    screenshot()
+    res = cv2.matchTemplate(screen, label, cv2.TM_CCOEFF_NORMED)
+    loc = np.where(res >= 0.85)
+    points = list(zip(*loc[::-1]))  # (x, y)
+    points = sorted(points, key=lambda p: (p[1] // 100, p[0]))
+
+    last_point = points[-1]
+    x, y = last_point
+
+    pyautogui.moveTo(x + 10, y + 10)
+    pyautogui.click()
+    pyautogui.sleep(1)
+
+    # 입장 후 개발
+    
+
+
 
 if __name__ == "__main__":
     do_startup()
@@ -377,3 +400,4 @@ if __name__ == "__main__":
     do_create()
     do_mission_first_half()
     do_market()
+    do_work()
