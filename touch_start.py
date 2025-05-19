@@ -9,11 +9,15 @@ from datetime import datetime
 TEMPLATE_DIR = 'templates'
 DAY_MOD3 = datetime.now().day % 3
 
+# Get screen size using pyautogui
+screen_width, screen_height = pyautogui.size()
 
 def screenshot(save_path="screen.png"):
-    pyautogui.screenshot(save_path)
+    pyautogui.screenshot("screen.png", region=(0, 0, screen_width, screen_height))
 
 def match_template(screen_path, template_name, threshold=0.85):
+    # Move mouse pointer away
+    pyautogui.moveTo(10, 10)
     screenshot()
     template_path = os.path.join(TEMPLATE_DIR, template_name)
     screen = cv2.imread(screen_path, cv2.IMREAD_GRAYSCALE)
@@ -28,7 +32,7 @@ def match_template(screen_path, template_name, threshold=0.85):
     print(f"❌ No match for {template_path} (confidence {max_val:.2f})")
     return None
 
-def click_template(template_name, timeout=15, retry_interval=0.3, offset=(10, 10)):
+def click_template(template_name, timeout=15, retry_interval=0.3, offset=(10, 10), linger=True):
     start_time = time.time()
 
     while time.time() - start_time < timeout:
@@ -38,6 +42,14 @@ def click_template(template_name, timeout=15, retry_interval=0.3, offset=(10, 10
             pyautogui.moveTo(x + offset[0], y + offset[1])
             pyautogui.click()
             print(f"✅ Clicked: {template_name}")
+
+            if not linger:  # It should not linger
+                time.sleep(2)
+                while match_template("screen.png", template_name):
+                    pyautogui.moveTo(x + offset[0], y + offset[1])
+                    pyautogui.click()
+                    time.sleep(1)
+                    
             return True
         print(f"🔁 Retrying {template_name}...")
         time.sleep(retry_interval)
@@ -86,6 +98,9 @@ def run_schedule():
             time.sleep(1)
 
             while True:
+                # 인연 랭크 업
+                if match_template("screen.png", "heart_rank_up.png"):
+                    click_template("heart_rank_up.png")
                 confirm_pos = match_template("screen.png", "schedule_confirm.png", threshold=0.85)
                 
                 if confirm_pos:
@@ -141,6 +156,8 @@ def run_schedule():
                 time.sleep(1)
 
                 while True:
+                    if match_template("screen.png", "heart_rank_up.png"):
+                        click_template("heart_rank_up.png")
                     confirm_pos = match_template("screen.png", "schedule_confirm.png", threshold=0.85)
                     
                     if confirm_pos:
@@ -244,28 +261,26 @@ def _schedule_in_location():
 
 
 def do_startup():
-    click_template("touch_to_start.png", offset=(100, 10))  # Check template not exist
+    click_template("touch_to_start.png", offset=(100, 10), linger=False) 
     time.sleep(15)
-    click_template("daily_check_in.png")  # Check template not exist
+    click_template("daily_check_in.png", linger=False) 
     time.sleep(3)
-    click_template("exit_announcements.png")  # Check template not exist
+    click_template("exit_announcements.png", linger=False)
     time.sleep(2)
-    click_template("monthly_check_in.png")  # Check template not exist
+    click_template("monthly_check_in.png", offset=(300, 300), linger=False) 
     time.sleep(4)
-    click_template("cafe_icon.png")  # Temporary until above is fixed
-    time.sleep(2)
 
 def do_ap_overflow():
     if match_template("screen.png", "notification.png", 0.95):
-        click_template("social_confirm.png")
+        click_template("social_confirm.png", linger=False)
     
 def do_cafe():
     # Need to implement student nadenade feature
-    click_template("cafe_icon.png")  # Check template not exist
+    click_template("cafe_icon.png", linger=False) 
     time.sleep(5)
     click_template("cafe_visited_students.png")
     time.sleep(2)
-    click_template("cafe_visited_students_exit.png")  # Check template not exist
+    click_template("cafe_visited_students_exit.png", linger=False) 
     time.sleep(2)
     click_template("cafe_collect.png")
     time.sleep(2)
@@ -275,24 +290,24 @@ def do_cafe():
     time.sleep(2)
     do_ap_overflow()
     time.sleep(2)
-    click_template("cafe_collect_x.png")  # Check template not exist
+    click_template("cafe_collect_x.png", linger=False)  
     time.sleep(2)
     click_template("cafe_back.png")
     time.sleep(8)
 
 def do_schedule():
-    click_template("schedule_icon.png")  # Check template not exist
+    click_template("schedule_icon.png", linger=False) 
     time.sleep(5)
-    click_template("schedule_schale_office.png")  # Check template not exist
+    click_template("schedule_schale_office.png", linger=False)  
     time.sleep(2)
     run_schedule()
-    click_template("cafe_back.png")  # Return to ARONA page
+    click_template("cafe_back.png", linger=False) 
     time.sleep(2)
-    click_template("cafe_back.png")  # Check template not exist
+    click_template("cafe_back.png", linger=False)  
     time.sleep(5)
 
 def do_social():
-    click_template("social_icon.png")  # Check template not exist
+    click_template("social_icon.png", linger=False)  
     time.sleep(2)
     click_template("social_circle.png")
     time.sleep(4)
@@ -302,7 +317,7 @@ def do_social():
     time.sleep(5)
 
 def do_create():
-    click_template("create_icon.png")  # Check template not exist
+    click_template("create_icon.png", linger=False) 
     time.sleep(5)
     click_template("create_receive.png")
     time.sleep(2)
@@ -318,7 +333,7 @@ def do_create():
     time.sleep(5)
 
 def do_mission_first_half():
-    click_template("mission_icon.png")  # Check template not exist
+    click_template("mission_icon.png", linger=False)  
     time.sleep(5)
     click_template("mission_receive_all.png")
     time.sleep(2)
@@ -330,7 +345,7 @@ def do_mission_first_half():
     time.sleep(5)
 
 def do_market():
-    click_template("market_icon.png")  # Check template not exist
+    click_template("market_icon.png", linger=False) 
     time.sleep(5)
     click_template("market_pvp.png")
     time.sleep(2)
@@ -342,7 +357,7 @@ def do_market():
     time.sleep(2)
     click_template("confirm_yellow.png")
     time.sleep(3)
-    click_template("market_touch.png")  # Check template not exist
+    click_template("market_touch.png", linger=False) 
     time.sleep(2)
     do_ap_overflow()
     time.sleep(2)
@@ -350,12 +365,18 @@ def do_market():
     time.sleep(5)
 
 def do_work():
-    click_template("work_icon")
+    click_template("work_icon.png")
     time.sleep(5)
     _do_wanted()
+    _do_exchange()
+    _do_pvp()
 
+    click_template("cafe_back.png")
+    time.sleep(2)
+
+# 현상수배
 def _do_wanted():
-    click_template("wanted_icon")
+    click_template("wanted_icon.png")
     time.sleep(2)
     match DAY_MOD3:
         case 0:
@@ -387,13 +408,98 @@ def _do_wanted():
     pyautogui.click()
     pyautogui.sleep(1)
 
-    # 입장 후 개발
+    click_template("sweep_max.png")
+    time.sleep(1)
+    click_template("sweep_start.png", linger=False)
+    time.sleep(2)
+    click_template("social_confirm.png")
+    time.sleep(2)
+    click_template("skip.png")
+    time.sleep(2)
+    click_template("social_confirm.png", linger=False)
+    time.sleep(2)
+    click_template("cafe_collect_x.png")
+    time.sleep(2)
+    click_template("cafe_back.png")
+    time.sleep(2)
     
+# 학원교류회
+def _do_exchange():
+    click_template("exchange_icon.png")
+    time.sleep(5)
+
+    match DAY_MOD3:
+        case 0:
+            click_template("exchange_trinity.png")
+        case 1:
+            click_template("exchange_ghehenna.png")
+        case 2:
+            click_template("exchange_millennium.png")
+    time.sleep(2)
+
+    # File paths
+    LABEL_PATH = "templates/wanted_enter.png"
+
+    screenshot()
+
+    # Load images
+    screen = cv2.imread("screen.png")
+    label = cv2.imread(LABEL_PATH)
+    screenshot()
+    res = cv2.matchTemplate(screen, label, cv2.TM_CCOEFF_NORMED)
+    loc = np.where(res >= 0.85)
+    points = list(zip(*loc[::-1]))  # (x, y)
+    points = sorted(points, key=lambda p: (p[1] // 100, p[0]))
+
+    last_point = points[-1]
+    x, y = last_point
+
+    pyautogui.moveTo(x + 10, y + 10)
+    pyautogui.click()
+    pyautogui.sleep(1)
+
+    click_template("sweep_max.png")
+    time.sleep(1)
+    click_template("sweep_start.png", linger=False)
+    time.sleep(2)
+    click_template("social_confirm.png")
+    time.sleep(2)
+    click_template("skip.png")
+    time.sleep(2)
+    click_template("social_confirm.png", linger=False)
+    time.sleep(2)
+    click_template("cafe_collect_x.png")
+    time.sleep(2)
+    click_template("cafe_back.png")
+    time.sleep(2)
+
+def _do_pvp():
+    click_template("pvp_icon.png")
+    time.sleep(5)
+    click_template("pvp_receive.png")
+    time.sleep(2)
+    click_template("pvp_touch.png", linger=False)
+    time.sleep(2)
+    click_template("pvp_receive.png")
+    time.sleep(2)
+    click_template("pvp_touch.png", linger=False)
+    time.sleep(2)
+    click_template("pvp_reset.png", offset=(0,100))
+    time.sleep(2)
+    click_template("pvp_attack_setup.png", linger=False)
+    time.sleep(2)
+    click_template("pvp_sally.png", linger=False)
+    time.sleep(2)
+    click_template("social_confirm.png", linger=False)
+    time.sleep(2)
+    click_template("cafe_back.png")
+    time.sleep(2)
 
 
 
 if __name__ == "__main__":
     do_startup()
+    do_work()
     do_cafe()
     do_schedule()
     do_social()
