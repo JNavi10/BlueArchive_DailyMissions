@@ -20,8 +20,8 @@ def match_template(screen_path, template_name, threshold=0.85):
     pyautogui.moveTo(10, 10)
     screenshot()
     template_path = os.path.join(TEMPLATE_DIR, template_name)
-    screen = cv2.imread(screen_path, cv2.IMREAD_GRAYSCALE)
-    template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
+    screen = cv2.imread(screen_path, cv2.IMREAD_COLOR)
+    template = cv2.imread(template_path, cv2.IMREAD_COLOR)
 
     result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
     _, max_val, _, max_loc = cv2.minMaxLoc(result)
@@ -32,11 +32,11 @@ def match_template(screen_path, template_name, threshold=0.85):
     print(f"❌ No match for {template_path} (confidence {max_val:.2f})")
     return None
 
-def click_template(template_name, timeout=15, retry_interval=0.3, offset=(10, 10), linger=True):
+def click_template(template_name, timeout=15, retry_interval=0.3, offset=(10, 10), linger=True, threshold=0.85):
     start_time = time.time()
 
     while time.time() - start_time < timeout:
-        pos = match_template("screen.png", template_name)
+        pos = match_template("screen.png", template_name, threshold=threshold)
         if pos:
             x, y = pos
             pyautogui.moveTo(x + offset[0], y + offset[1])
@@ -45,7 +45,7 @@ def click_template(template_name, timeout=15, retry_interval=0.3, offset=(10, 10
 
             if not linger:  # It should not linger
                 time.sleep(2)
-                while match_template("screen.png", template_name):
+                while match_template("screen.png", template_name, threshold=threshold):
                     pyautogui.moveTo(x + offset[0], y + offset[1])
                     pyautogui.click()
                     time.sleep(1)
@@ -53,6 +53,7 @@ def click_template(template_name, timeout=15, retry_interval=0.3, offset=(10, 10
             return True
         print(f"🔁 Retrying {template_name}...")
         time.sleep(retry_interval)
+        screenshot()
 
     print(f"⏱️ Timeout: {template_name} not found.")
     exit(1)
@@ -88,10 +89,17 @@ def run_schedule():
     def _actually_run_schedule():
         accepted_schedule, _ = _schedule_in_location()
         for x, y in reversed(accepted_schedule):  # Reverse so we get purple books first
-            # click schedule
-            pyautogui.moveTo(x + 10, y + 10)
-            pyautogui.click()
-            pyautogui.sleep(1)
+            if match_template("screen.png", schale_ticket_available, 0.95):
+                print("Ticket empty")
+                # To exit all schedule
+                click_template("schedule_all_schedule.png")
+                time.sleep(1)
+                return
+            while not match_template("screen.png", "schedule_start_schedule.png"):
+                # click schedule
+                pyautogui.moveTo(x + 10, y + 10)
+                pyautogui.click()
+                pyautogui.sleep(1)
 
             # run schedule
             click_template("schedule_start_schedule.png")
@@ -145,6 +153,12 @@ def run_schedule():
         _, all_slots = _schedule_in_location()
 
         for x, y, num_hearts in all_slots:
+            if match_template("screen.png", schale_ticket_available, 0.95):
+                print("Ticket empty")
+                # To exit all schedule
+                click_template("schedule_all_schedule.png")
+                time.sleep(1)
+                return
             if num_hearts >= 2:
                 # click schedule
                 pyautogui.moveTo(x + 10, y + 10)
@@ -269,6 +283,8 @@ def do_startup():
     time.sleep(2)
     click_template("monthly_check_in.png", offset=(300, 300), linger=False) 
     time.sleep(4)
+    if match_template("screen.png", "social_confirm.png", 0.95):
+        click_template("social_confirm.png", linger=False)
 
 def do_ap_overflow():
     if match_template("screen.png", "notification.png", 0.95):
@@ -307,7 +323,7 @@ def do_schedule():
     time.sleep(5)
 
 def do_social():
-    click_template("social_icon.png", linger=False)  
+    click_template("social_icon.png", linger=False, threshold=0.95)  
     time.sleep(2)
     click_template("social_circle.png")
     time.sleep(4)
@@ -416,7 +432,7 @@ def _do_wanted():
     time.sleep(2)
     click_template("skip.png")
     time.sleep(2)
-    click_template("social_confirm.png", linger=False)
+    click_template("wanted_confirm.png", linger=False)
     time.sleep(2)
     click_template("cafe_collect_x.png")
     time.sleep(2)
@@ -466,9 +482,11 @@ def _do_exchange():
     time.sleep(2)
     click_template("skip.png")
     time.sleep(2)
-    click_template("social_confirm.png", linger=False)
+    click_template("wanted_confirm.png", linger=False)
     time.sleep(2)
     click_template("cafe_collect_x.png")
+    time.sleep(2)
+    click_template("cafe_back.png")
     time.sleep(2)
     click_template("cafe_back.png")
     time.sleep(2)
@@ -476,11 +494,11 @@ def _do_exchange():
 def _do_pvp():
     click_template("pvp_icon.png")
     time.sleep(5)
-    click_template("pvp_receive.png")
+    click_template("pvp_receive.png", threshold=0.95)
     time.sleep(2)
     click_template("pvp_touch.png", linger=False)
     time.sleep(2)
-    click_template("pvp_receive.png")
+    click_template("pvp_receive2.png", threshold=0.95)
     time.sleep(2)
     click_template("pvp_touch.png", linger=False)
     time.sleep(2)
@@ -496,7 +514,6 @@ def _do_pvp():
     time.sleep(2)
 
 
-
 if __name__ == "__main__":
     do_startup()
     do_work()
@@ -504,6 +521,6 @@ if __name__ == "__main__":
     do_schedule()
     do_social()
     do_create()
-    do_mission_first_half()
     do_market()
-    do_work()
+    do_mission_first_half()
+    
