@@ -317,8 +317,6 @@ def do_schedule():
     click_template("schedule_schale_office.png", linger=False)  
     time.sleep(2)
     run_schedule()
-    click_template("cafe_back.png", linger=False) 
-    time.sleep(2)
     click_template("cafe_back.png", linger=False)  
     time.sleep(5)
 
@@ -348,7 +346,7 @@ def do_create():
     click_template("cafe_back.png")
     time.sleep(5)
 
-def do_mission_first_half():
+def do_mission():
     click_template("mission_icon.png", linger=False)  
     time.sleep(5)
     click_template("mission_receive_all.png")
@@ -383,7 +381,7 @@ def do_market():
 def do_work():
     click_template("work_icon.png")
     time.sleep(5)
-    _do_wanted()
+    #_do_wanted()
     _do_exchange()
     _do_pvp()
 
@@ -435,6 +433,8 @@ def _do_wanted():
     click_template("wanted_confirm.png", linger=False)
     time.sleep(2)
     click_template("cafe_collect_x.png")
+    time.sleep(2)
+    click_template("cafe_back.png")
     time.sleep(2)
     click_template("cafe_back.png")
     time.sleep(2)
@@ -522,5 +522,5 @@ if __name__ == "__main__":
     do_social()
     do_create()
     do_market()
-    do_mission_first_half()
+    do_mission()
     
