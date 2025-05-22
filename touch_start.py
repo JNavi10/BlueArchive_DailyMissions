@@ -381,7 +381,7 @@ def do_market():
 def do_work():
     click_template("work_icon.png")
     time.sleep(5)
-    #_do_wanted()
+    _do_wanted()
     _do_exchange()
     _do_pvp()
 
