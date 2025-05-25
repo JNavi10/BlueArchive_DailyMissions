@@ -83,13 +83,13 @@ def click_next_button():
 
 def run_schedule():
     schale_office_path = "schedule_schale_office_location.png"
-    schale_ticket_available = "schedule_ticket_0.png"
+    schedule_ticket_0 = "schedule_ticket_0.png"
  
  
     def _actually_run_schedule():
         accepted_schedule, _ = _schedule_in_location()
         for x, y in reversed(accepted_schedule):  # Reverse so we get purple books first
-            if match_template("screen.png", schale_ticket_available, 0.95):
+            if match_template("screen.png", schedule_ticket_0, 0.95):
                 print("Ticket empty")
                 # To exit all schedule
                 click_template("schedule_all_schedule.png")
@@ -122,6 +122,11 @@ def run_schedule():
                 pyautogui.click()  # click in place to advance
                 time.sleep(1)
 
+
+            if match_template("screen.png", 'schedule_all_schedule_ticket_0', 0.95):
+                print("Ticket empty")
+                return
+
         # To exit all schedule
         click_template("schedule_all_schedule.png")
         time.sleep(1)
@@ -132,11 +137,10 @@ def run_schedule():
 
     click_next_button()
     time.sleep(2)
-    screenshot()
 
     # optimal runs for all locations
     while not match_template("screen.png", schale_office_path):
-        if match_template("screen.png", schale_ticket_available, 0.95):
+        if match_template("screen.png", schedule_ticket_0, 0.95):
             print("Ticket empty")
             return
 
@@ -149,11 +153,11 @@ def run_schedule():
 
     print("Optimal run finished.")
 
-    while not match_template("screen.png", schale_ticket_available, 0.95):
+    while not match_template("screen.png", schedule_ticket_0, 0.95):
         _, all_slots = _schedule_in_location()
 
         for x, y, num_hearts in all_slots:
-            if match_template("screen.png", schale_ticket_available, 0.95):
+            if match_template("screen.png", schedule_ticket_0, 0.95):
                 print("Ticket empty")
                 # To exit all schedule
                 click_template("schedule_all_schedule.png")
@@ -272,7 +276,6 @@ def _schedule_in_location():
         print("⚠️ No optimal slot found.")
 
     return accepted_slots, all_slots
-
 
 def do_startup():
     click_template("touch_to_start.png", offset=(100, 10), linger=False) 
@@ -513,8 +516,20 @@ def _do_pvp():
     click_template("cafe_back.png")
     time.sleep(2)
 
+def set_window_proportions():
+    window = gw.getWindowsWithTitle("BlueStacks")
+
+    if window:
+        win = window[0]
+        win.moveTo(0, 50)
+        win.resizeTo(1280, 753)
+        print("Resized BlueStacks to 1280x753")
+    else:
+        print(f"No Bluestacks window found")
+
 
 if __name__ == "__main__":
+    set_window_proportions()
     do_startup()
     do_work()
     do_cafe()
