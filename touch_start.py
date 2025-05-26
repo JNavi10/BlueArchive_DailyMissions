@@ -123,7 +123,7 @@ def run_schedule():
                 time.sleep(1)
 
 
-            if match_template("screen.png", 'schedule_all_schedule_ticket_0', 0.95):
+            if match_template("screen.png", 'schedule_all_schedule_ticket_0.png', 0.95):
                 print("Ticket empty")
                 return
 
