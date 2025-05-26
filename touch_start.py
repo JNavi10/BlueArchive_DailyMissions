@@ -382,7 +382,7 @@ def do_market():
     time.sleep(5)
 
 def do_work():
-    click_template("work_icon.png")
+    click_template("work_icon.png", linger=False)
     time.sleep(5)
     _do_wanted()
     _do_exchange()
