@@ -188,6 +188,10 @@ def run_schedule():
                     
                     pyautogui.click()  # click in place to advance
                     time.sleep(1)
+
+            if match_template("screen.png", 'schedule_all_schedule_ticket_0.png', 0.95):
+                print("Ticket empty")
+                return
         
         # To exit all schedule
         click_template("schedule_all_schedule.png")
