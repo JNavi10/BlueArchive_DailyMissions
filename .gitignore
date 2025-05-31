@@ -176,3 +176,9 @@ cython_debug/
 
 # Ignore screenshot
 screen.png
+
+# Ignore vscode settings
+.vscode/
+
+# Ignore debug utils
+debug_utils.py
