@@ -6,21 +6,23 @@ import os
 import pygetwindow as gw
 from datetime import datetime
 
-TEMPLATE_DIR = 'templates'
+BASE_DIR = os.path.dirname(__file__)
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+SCREENSHOT_PATH = os.path.join(BASE_DIR, 'screen.png')
 DAY_MOD3 = datetime.now().day % 3
 
 # Get screen size using pyautogui
 screen_width, screen_height = pyautogui.size()
 
-def screenshot(save_path="screen.png"):
-    pyautogui.screenshot("screen.png", region=(0, 0, screen_width, screen_height))
+def screenshot():
+    pyautogui.screenshot(SCREENSHOT_PATH, region=(0, 0, screen_width, screen_height))
 
-def match_template(screen_path, template_name, threshold=0.85):
+def match_template(template_name, threshold=0.85):
     # Move mouse pointer away
     pyautogui.moveTo(10, 10)
     screenshot()
+    screen = cv2.imread(SCREENSHOT_PATH, cv2.IMREAD_COLOR)
     template_path = os.path.join(TEMPLATE_DIR, template_name)
-    screen = cv2.imread(screen_path, cv2.IMREAD_COLOR)
     template = cv2.imread(template_path, cv2.IMREAD_COLOR)
 
     result = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
@@ -36,7 +38,7 @@ def click_template(template_name, timeout=15, retry_interval=0.3, offset=(10, 10
     start_time = time.time()
 
     while time.time() - start_time < timeout:
-        pos = match_template("screen.png", template_name, threshold=threshold)
+        pos = match_template(template_name, threshold=threshold)
         if pos:
             x, y = pos
             pyautogui.moveTo(x + offset[0], y + offset[1])
@@ -45,7 +47,7 @@ def click_template(template_name, timeout=15, retry_interval=0.3, offset=(10, 10
 
             if not linger:  # It should not linger
                 time.sleep(2)
-                while match_template("screen.png", template_name, threshold=threshold):
+                while match_template(template_name, threshold=threshold):
                     pyautogui.moveTo(x + offset[0], y + offset[1])
                     pyautogui.click()
                     time.sleep(1)
@@ -89,13 +91,13 @@ def run_schedule():
     def _actually_run_schedule():
         accepted_schedule, _ = _schedule_in_location()
         for x, y in reversed(accepted_schedule):  # Reverse so we get purple books first
-            if match_template("screen.png", schedule_ticket_0, 0.95):
+            if match_template(schedule_ticket_0, 0.95):
                 print("Ticket empty")
                 # To exit all schedule
                 click_template("schedule_all_schedule.png")
                 time.sleep(1)
                 return
-            while not match_template("screen.png", "schedule_start_schedule.png"):
+            while not match_template("schedule_start_schedule.png"):
                 # click schedule
                 pyautogui.moveTo(x + 10, y + 10)
                 pyautogui.click()
@@ -107,9 +109,9 @@ def run_schedule():
 
             while True:
                 # 인연 랭크 업
-                if match_template("screen.png", "heart_rank_up.png"):
+                if match_template("heart_rank_up.png"):
                     click_template("heart_rank_up.png")
-                confirm_pos = match_template("screen.png", "schedule_confirm.png", threshold=0.85)
+                confirm_pos = match_template("schedule_confirm.png", threshold=0.85)
                 
                 if confirm_pos:
                     x, y = confirm_pos
@@ -123,7 +125,7 @@ def run_schedule():
                 time.sleep(1)
 
 
-            if match_template("screen.png", 'schedule_all_schedule_ticket_0.png', 0.95):
+            if match_template('schedule_all_schedule_ticket_0.png', 0.95):
                 print("Ticket empty")
                 return
 
@@ -139,8 +141,8 @@ def run_schedule():
     time.sleep(2)
 
     # optimal runs for all locations
-    while not match_template("screen.png", schale_office_path):
-        if match_template("screen.png", schedule_ticket_0, 0.95):
+    while not match_template(schale_office_path):
+        if match_template(schedule_ticket_0, 0.95):
             print("Ticket empty")
             return
 
@@ -153,11 +155,11 @@ def run_schedule():
 
     print("Optimal run finished.")
 
-    while not match_template("screen.png", schedule_ticket_0, 0.95):
+    while not match_template(schedule_ticket_0, 0.95):
         _, all_slots = _schedule_in_location()
 
         for x, y, num_hearts in all_slots:
-            if match_template("screen.png", schedule_ticket_0, 0.95):
+            if match_template(schedule_ticket_0, 0.95):
                 print("Ticket empty")
                 # To exit all schedule
                 click_template("schedule_all_schedule.png")
@@ -174,9 +176,9 @@ def run_schedule():
                 time.sleep(1)
 
                 while True:
-                    if match_template("screen.png", "heart_rank_up.png"):
+                    if match_template("heart_rank_up.png"):
                         click_template("heart_rank_up.png")
-                    confirm_pos = match_template("screen.png", "schedule_confirm.png", threshold=0.85)
+                    confirm_pos = match_template("schedule_confirm.png", threshold=0.85)
                     
                     if confirm_pos:
                         x, y = confirm_pos
@@ -189,7 +191,7 @@ def run_schedule():
                     pyautogui.click()  # click in place to advance
                     time.sleep(1)
 
-            if match_template("screen.png", 'schedule_all_schedule_ticket_0.png', 0.95):
+            if match_template('schedule_all_schedule_ticket_0.png', 0.95):
                 print("Ticket empty")
                 return
         
@@ -203,9 +205,8 @@ def run_schedule():
 
 def _schedule_in_location():
     # File paths
-    SCREEN_PATH = "screen.png"
-    LABEL_PATH = "templates/schedule_attending_students.png"
-    HEART_PATH = "templates/schedule_heart.png"
+    LABEL_PATH = os.path.join(TEMPLATE_DIR, "schedule_attending_students.png")
+    HEART_PATH = os.path.join(TEMPLATE_DIR, "schedule_heart.png")
 
     # Offsets for bounding box relative to label position
     OFFSET_TOP = 0
@@ -220,12 +221,9 @@ def _schedule_in_location():
     screenshot()
     
     # Load images
-    screen = cv2.imread(SCREEN_PATH)
+    screen = cv2.imread(SCREENSHOT_PATH)
     label = cv2.imread(LABEL_PATH)
     heart_template = cv2.imread(HEART_PATH)
-
-    #screen_gray = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
-    #label_gray = cv2.cvtColor(label, cv2.COLOR_BGR2GRAY)
 
     # Step 1: Match labels to find slot anchors
     res = cv2.matchTemplate(screen, label, cv2.TM_CCOEFF_NORMED)
@@ -236,8 +234,6 @@ def _schedule_in_location():
     points = sorted(points, key=lambda p: (p[1] // 100, p[0]))
 
     def count_hearts_in_slot(slot_img, heart_template, threshold=0.85):
-        #slot_gray = cv2.cvtColor(slot_img, cv2.COLOR_BGR2GRAY)
-        #heart_gray = cv2.cvtColor(heart_template, cv2.IMREAD_GRAYSCALE)
 
         result = cv2.matchTemplate(slot_img, heart_template, cv2.TM_CCOEFF_NORMED)
         loc = np.where(result >= threshold)
@@ -290,11 +286,11 @@ def do_startup():
     time.sleep(2)
     click_template("monthly_check_in.png", offset=(300, 300), linger=False) 
     time.sleep(4)
-    if match_template("screen.png", "social_confirm.png", 0.95):
+    if match_template("social_confirm.png", 0.95):
         click_template("social_confirm.png", linger=False)
 
 def do_ap_overflow():
-    if match_template("screen.png", "notification.png", 0.95):
+    if match_template( "notification.png", 0.95):
         click_template("social_confirm.png", linger=False)
     
 def do_cafe():
@@ -409,18 +405,23 @@ def _do_wanted():
     time.sleep(2)
 
     # File paths
-    LABEL_PATH = "templates/wanted_enter.png"
+    LABEL_PATH = os.path.join(TEMPLATE_DIR, "wanted_enter.png")
 
     screenshot()
 
     # Load images
-    screen = cv2.imread("screen.png")
+    screen = cv2.imread(SCREENSHOT_PATH)
     label = cv2.imread(LABEL_PATH)
-    screenshot()
     res = cv2.matchTemplate(screen, label, cv2.TM_CCOEFF_NORMED)
     loc = np.where(res >= 0.85)
     points = list(zip(*loc[::-1]))  # (x, y)
     points = sorted(points, key=lambda p: (p[1] // 100, p[0]))
+
+    if not points:
+        cv2.imwrite("debug_screen.png", screen)
+        cv2.imwrite("debug_label.png", label)
+        raise RuntimeError("'wanted_enter.png' failed to detect. Refer to 'debug_screen.png' and 'debug_label.png'")
+
 
     last_point = points[-1]
     x, y = last_point
@@ -461,12 +462,12 @@ def _do_exchange():
     time.sleep(2)
 
     # File paths
-    LABEL_PATH = "templates/wanted_enter.png"
+    LABEL_PATH = os.path.join(TEMPLATE_DIR, "wanted_enter.png")
 
     screenshot()
 
     # Load images
-    screen = cv2.imread("screen.png")
+    screen = cv2.imread(SCREENSHOT_PATH)
     label = cv2.imread(LABEL_PATH)
     screenshot()
     res = cv2.matchTemplate(screen, label, cv2.TM_CCOEFF_NORMED)
