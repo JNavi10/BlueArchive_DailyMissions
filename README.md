@@ -33,6 +33,11 @@ This project aims to reduce the chore-like nature of daily missions by automatin
 - Progressed enough, around Lv.80 or more
 - Must have at least one `Quick Create` setup
 ![quick create image](templates/quick_create.png)
+- BlueStacks Sidebar MUST be closed. On the top right of Bluestacks you should see `>>`.
+
+## Known Issues
+
+- During Schedule, if the area levels up: you have to exit the level up screen.
 
 ## Execution
 
